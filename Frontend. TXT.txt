@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Career Recommendation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to right, #667eea, #764ba2);
+        }
+        .container {
+            width: 420px;
+            margin: 60px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        h2 { text-align: center; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .result { display: none; }
+        .card {
+            background: #f9f9f9;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        a {
+            display: block;
+            margin: 5px 0;
+            color: blue;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="formPage">
+    <h2>AI Career Recommendation</h2>
+    <input type="text" id="name" placeholder="Full Name">
+    <select id="qualification" onchange="checkOther()">
+        <option value="">Select Qualification</option>
+        <option value="Btech">Btech</option>
+        <option value="Bsc">Bsc</option>
+        <option value="MBA">MBA</option>
+        <option value="Other">Other</option>
+    </select>
+    <input type="text" id="otherQual" placeholder="Enter Qualification" style="display:none;">
+    <input type="date" id="date">
+    <input type="file" id="resume">
+    <button onclick="analyze()">Analyze Resume</button>
+</div>
+
+<div class="container result" id="resultPage">
+    <h2>Analysis Result</h2>
+    <div class="card">
+        <p>Name: <span id="r_name"></span></p>
+        <p>Qualification: <span id="r_qualification"></span></p>
+        <p>Passout Year: <span id="r_year"></span></p>
+    </div>
+    <h3>Extracted Skills</h3>
+    <div class="card" id="extractedSkills">Python, SQL, Div</div>
+    <h3>Best Job for You</h3>
+    <div class="card" id="bestJob">Data Analyst</div>
+    <p>Why this job?</p>
+    <p>You have Python and SQL skills which match this role.</p>
+    <p>Match: <b id="match">66%</b></p>
+    <p style="color:red;">Missing Skills: <span id="missing">Excel</span></p>
+    
+    <p>Career Path:</p>
+    <p>1. Learn Excel</p>
+    <p>2. Learn Data Visualization</p>
+    <p>3. Apply for Data Analyst Jobs</p>
+    
+    <h3>Top Companies Hiring</h3>
+    <span id="companyData"></span>
+    
+    <h3>Search Jobs:</h3>
+    <a id="naukriLink" target="_blank">Naukri</a>
+    <a id="indeedLink" target="_blank">Indeed</a>
+    <a id="founditLink" target="_blank">Foundit</a>
+    <a id="shineLink" target="_blank">Shine</a>
+    <a id="timesjobsLink" target="_blank">TimesJobs</a>
+    <a id="glassdoorLink" target="_blank">Glassdoor</a>
+    <a id="linkedinLink" target="_blank">LinkedIn</a>
+</div>
+
+<script>
+    function checkOther() {
+        let qual = document.getElementById("qualification").value;
+        document.getElementById("otherQual").style.display = (qual === "Other") ? "block" : "none";
+    }
+
+    function analyze() {
+        let name = document.getElementById("name").value;
+        let qual = document.getElementById("qualification").value;
+        let fullDate = document.getElementById("date").value;
+
+        if (name === "" || qual === "" || fullDate === "") {
+            alert("Fill all fields");
+            return;
+        }
+
+        let year = new Date(fullDate).getFullYear();
+        document.getElementById("formPage").style.display = "none";
+        document.getElementById("resultPage").style.display = "block";
+
+        document.getElementById("r_name").innerText = name;
+        document.getElementById("r_qualification").innerText = qual;
+        document.getElementById("r_year").innerText = year;
+
+        let companies = "TCS | Infosys | Wipro | Accenture | Capgemini";
+        document.getElementById("companyData").innerText = companies;
+
+        let job = "Data Analyst";
+
+        document.getElementById("naukriLink").href = "https://www.naukri.com/" + job.replace(/ /g, "-") + "-jobs";
+        document.getElementById("indeedLink").href = "https://www.indeed.com/jobs?q=" + job.replace(/ /g, "+");
+        document.getElementById("founditLink").href = "https://www.foundit.in/srp/results?query=" + job.replace(/ /g, "%20");
+        document.getElementById("shineLink").href = "https://www.shine.com/job-search/" + job.replace(/ /g, "-") + "-jobs";
+        document.getElementById("timesjobsLink").href = "https://www.timesjobs.com/candidate/job-search.html?txtKeywords=" + job.replace(/ /g, "%20");
+        document.getElementById("glassdoorLink").href = "https://www.glassdoor.com/Job/jobs.htm?sc.keyword=" + job.replace(/ /g, "%20");
+        document.getElementById("linkedinLink").href = "https://www.linkedin.com/jobs/search/?keywords=" + job.replace(/ /g, "%20");
+    }
+</script>
+
+</body>
+</html>
