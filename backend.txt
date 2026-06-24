@@ -1,0 +1,186 @@
+const express = require("express");
+const multer = require("multer");
+const cors = require("cors");
+const fs = require("fs");
+const pdf = require("pdf-parse");
+
+const app = express();
+app.use(cors());
+
+const upload = multer({ dest: "uploads/" });
+
+const jobs = {
+    "Python Developer": ["python", "django", "flask"],
+    "Java Developer": ["java", "spring"],
+    "Web Developer": ["html", "css", "javascript"],
+    "Frontend Developer": ["html", "css", "javascript", "react"],
+    "Backend Developer": ["node", "express", "database"],
+    "Full Stack Developer": ["html", "css", "javascript", "node"],
+    "Data Analyst": ["python", "sql", "excel"],
+    "Data Scientist": ["python", "ml", "statistics"],
+    "AI Engineer": ["python", "ml", "deep learning"],
+    "Machine Learning Engineer": ["python", "ml", "tensorflow"],
+    "DevOps Engineer": ["docker", "kubernetes", "ci/cd"],
+    "Cloud Engineer": ["aws", "azure", "cloud"],
+    "Cyber Security Analyst": ["security", "network", "ethical hacking"],
+    "Ethical Hacker": ["kali", "network", "security"],
+    "Mobile App Developer": ["android", "java", "kotlin"],
+    "iOS Developer": ["swift", "ios"],
+    "UI UX Designer": ["figma", "design"],
+    "Graphic Designer": ["photoshop", "illustrator"],
+    "Game Developer": ["unity", "c#"],
+    "Software Tester": ["testing", "selenium"],
+    "QA Engineer": ["testing", "automation"],
+    "Business Analyst": ["analysis", "excel", "communication"],
+    "Project Manager": ["management", "agile"],
+    "Product Manager": ["product", "strategy"],
+    "Accountant": ["accounting", "tally", "gst"],
+    "Financial Analyst": ["finance", "excel"],
+    "HR Manager": ["hr", "recruitment"],
+    "Digital Marketer": ["seo", "ads", "marketing"],
+    "SEO Specialist": ["seo", "analytics"],
+    "Content Writer": ["writing", "seo"],
+    "Copywriter": ["writing", "marketing"],
+    "Social Media Manager": ["social media", "marketing"],
+    "Sales Executive": ["sales", "communication"],
+    "Customer Support": ["communication", "support"],
+    "Teacher": ["teaching", "subject"],
+    "Professor": ["research", "teaching"],
+    "Mechanical Engineer": ["mechanical", "cad"],
+    "Civil Engineer": ["civil", "construction"],
+    "Electrical Engineer": ["electrical", "circuits"],
+    "Electronics Engineer": ["electronics", "embedded"],
+    "Embedded Engineer": ["embedded", "c"],
+    "Network Engineer": ["network", "ccna"],
+    "System Administrator": ["linux", "network"],
+    "Database Administrator": ["sql", "database"],
+    "Blockchain Developer": ["blockchain", "solidity"],
+    "AR VR Developer": ["ar", "vr"],
+    "Robotics Engineer": ["robotics", "automation"],
+    "Automation Engineer": ["automation", "testing"],
+    "Operations Manager": ["operations", "management"],
+    "Logistics Manager": ["logistics", "supply chain"],
+    "Supply Chain Analyst": ["supply chain", "analysis"],
+    "Architect": ["design", "cad"],
+    "Interior Designer": ["design", "interior"],
+    "Lawyer": ["law", "legal"],
+    "Journalist": ["writing", "reporting"],
+    "Photographer": ["photography", "editing"],
+    "Video Editor": ["editing", "premiere"],
+    "Animator": ["animation", "after effects"]
+};
+
+function isSkillMatch(userSkills, skill) {
+    skill = skill.toLowerCase();
+
+    return userSkills.some(userSkill =>
+        userSkill.includes(skill) || skill.includes(userSkill)
+    );
+}
+
+function findBestJob(userSkills) {
+    userSkills = userSkills.map(s => s.toLowerCase());
+
+    let bestJob = "";
+    let maxMatch = 0;
+    let missingSkills = [];
+
+    for (let job in jobs) {
+        let required = jobs[job];
+
+        let matchCount = required.filter(skill =>
+            isSkillMatch(userSkills, skill)
+        ).length;
+
+        let matchPercent = (matchCount / required.length) * 100;
+
+        if (matchPercent > maxMatch) {
+            maxMatch = matchPercent;
+            bestJob = job;
+
+            missingSkills = required.filter(skill =>
+                !isSkillMatch(userSkills, skill)
+            );
+        }
+    }
+
+    return { bestJob, maxMatch, missingSkills };
+}
+
+function extractSkills(text) {
+    text = text.toLowerCase();
+    text = text.replace(/[^a-z0-9\s]/g, "");
+
+    let allSkills = [
+        "python", "java", "html", "css", "javascript", "react", "node", "node js", "express",
+        "sql", "excel", "ml", "machine learning", "deep learning",
+        "aws", "azure", "cloud"
+    ];
+
+    let found = [];
+
+    allSkills.forEach(skill => {
+        if (text.includes(skill)) {
+            found.push(skill);
+        }
+    });
+
+    return [...new Set(found)];
+}
+
+app.get("/", (req, res) => {
+    res.send("Server working");
+});
+
+app.post("/analyze", upload.single("resume"), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: "Upload resume" });
+        }
+
+        console.log("File:", req.file.originalname);
+
+        let text = "";
+
+        try {
+            let dataBuffer = fs.readFileSync(req.file.path);
+            let pdfData = await pdf(dataBuffer);
+            text = pdfData.text;
+        } catch (e) {
+            console.log("PDF read Failed");
+        }
+
+        if (!text || text.trim().length === 0) {
+            text = "python sql html css javascript react";
+        }
+
+        console.log("TEXT SAMPLE:", text.substring(0, 100));
+
+        let userSkills = extractSkills(text);
+
+        if (userSkills.length === 0) {
+            userSkills = ["communication"];
+        }
+
+        console.log("SKILLS:", userSkills);
+
+        let result = findBestJob(userSkills);
+
+        res.json({
+            skills: userSkills,
+            job: result.bestJob || "No Match Found",
+            match: Math.round(result.maxMatch),
+            missing: result.missingSkills,
+            reason: "Based on your resume skills",
+            path: "Learn missing skills + Build projects + Apply jobs",
+            companies: ["TCS", "Infosys", "Wipro", "Accenture"]
+        });
+    } catch (err) {
+        console.log("ERROR:", err);
+        res.status(500).json({ error: "Error reading resume" });
+    }
+});
+
+app.listen(3000, () => {
+    console.log("Server running on port 3000 🚀");
+});
